@@ -1,0 +1,164 @@
+<html style="user-select:none">
+	<head>
+		<title>
+			Jump Game
+		</title>
+	</head>
+	<body>
+		<div id="display_0">
+		</div>
+		<canvas id="display_1" width="600" height="200" style="border:2px solid #000000">
+		</canvas>
+		<div>
+			Click / Any Key to jump
+            <br>
+            Air-jumps reduce score by <span id="sdpbd"></span>
+		</div>
+        <button id="adv_info_tog_but">
+        	Show advanced info
+        </button>
+        <div id="display_2">
+        </div>
+	</body>
+	<script>
+    	let difficulty=parseInt(prompt('Select difficulty:\n1 = Easy\n2 = Normal\n3 = Hard'));
+        if(!difficulty){
+        	location.reload();
+        }
+        document.getElementById('sdpbd').innerHTML=difficulty+'0%';
+		let player={
+			pos:0,
+			vel:0,
+			score:0,
+            highscore:0,
+            airjump:true,
+            jumpTime:0
+		};
+		let Enemy=function(){
+			let e={
+				type:0,
+				pos:600+Math.random()*600
+       	 	}
+    		return(e);
+		};
+		let keys={
+			click:false,
+			space:false
+		};
+		let Enemy_arr=function(){
+        	let array=[];
+			for(let e=0;e<2+difficulty;e++){
+				array.push(new Enemy);
+			}
+            return(array);
+        }
+        let enemy_array=new Enemy_arr;
+		function draw(){
+			let display_0=document.getElementById('display_0');
+			let display_1=document.getElementById('display_1');
+            let display_2=document.getElementById('display_2');
+			let ctx=display_1.getContext('2d');
+	
+			display_0.innerHTML='Score: '+Math.floor(player.score)+'<br>Highscore: '+Math.floor(player.highscore);
+            
+            let aj_s='unavailable';
+            if((player.airjump)&&(player.jumpTime<0)){
+            	aj_s='available';
+           	}
+           	if(advanced_info){
+            	display_2.innerHTML='player score: '+player.score+'<br>player highscore: '+player.highscore+'<br>player position: '+player.pos+'<br>player velocity: '+player.vel+'<br>player air-jump: '+aj_s+'<br><br>difficulty: '+difficulty+'<br>enemy count: '+enemy_array.length;
+                document.getElementById('adv_info_tog_but').innerHTML='Hide advanced info';
+            }
+            else{
+            	display_2.innerHTML='';
+            	document.getElementById('adv_info_tog_but').innerHTML='Show advanced info';
+           	}
+			
+			ctx.fillStyle='#ffffff';
+			ctx.fillRect(0,0,600,300);
+			ctx.fillStyle='#c5c5c5';
+            for(let e=0;e<enemy_array.length;e++){
+            	ctx.fillRect(enemy_array[e].pos,200,15,-30);
+            }
+			ctx.fillStyle='#858585';
+			ctx.fillRect(30,200-player.pos,30,-30);
+		}
+		function jump(){
+			if(player.pos<2){
+				player.vel=10;
+                player.airjump=true;
+                player.jumpTime=20;
+			}
+            if((player.jumpTime<0)&&(player.airjump)){
+            	player.vel=8;
+                player.airjump=false;
+                player.score*=1-(difficulty*0.1);
+            }
+		}
+		function move(){
+			player.vel-=0.5;
+			player.pos+=player.vel;
+            player.score+=0.1;
+            player.jumpTime-=1;
+            if(player.pos<0){
+            	player.pos=0;
+                player.vel=0;
+            }
+            for(let e=0;e<enemy_array.length;e++){
+            		enemy_array[e].pos-=(2+player.score*0.01);
+            		if(enemy_array[e].pos<-30){
+            			enemy_array[e].pos=600+Math.random()*600;
+            		}               	
+					if((player.pos<30)&&(enemy_array[e].pos<60)&&(enemy_array[e].pos>15)){
+						if(player.score>player.highscore){
+                        	alert('New Highscore!\nScore: '+Math.floor(player.score));
+                            player.highscore=player.score;
+                        }
+                        else{
+                        	alert('Game Over!\nScore: '+Math.floor(player.score));
+                        }
+                        enemy_array=new Enemy_arr;
+                        player.score=0;
+                        keys.click=false;
+                        keys.space=false;
+               	}
+				if(keys.click){
+					jump();
+				}
+				if(keys.space){
+					jump();
+				}
+          	}
+		}
+        let advanced_info=false;
+		document.onmousedown=()=>{
+			keys.click=true;
+		}
+		document.onmouseup=()=>{
+			keys.click=false;
+		}
+		document.onkeydown=(event)=>{
+        	if(event.keyCode==27){
+            	location.reload();
+            }
+			keys.space=true;
+		}
+		document.onkeyup=()=>{
+			keys.space=false;
+		}
+		let loop=setInterval(function(){
+			move();
+			draw();
+		},10);
+        
+        
+        document.getElementById('adv_info_tog_but').onclick=function(){
+        	if(advanced_info){
+            	advanced_info=false;
+            }
+            else{
+            	advanced_info=true;
+            }
+        };
+	</script>
+</html>
